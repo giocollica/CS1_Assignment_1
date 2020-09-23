@@ -185,11 +185,6 @@ void read_region(FILE *ifp, region *r)
     get_next_nonblank_line(ifp, numMonsters_string, 127);
     numMonsters = atoi(numMonsters_string);
  
-    for(int i = 0; i < numMonsters; i++)
-    {
-        get_next_nonblank_line(ifp, random, 127);
-    }
- 
     // idea for tomorrow
     // have to iterate for each monster based on num monsters
     
@@ -202,16 +197,32 @@ region *region_array_constructor(FILE *ifp, monster *monsters)
 {
     int i, j, k;
     int numRegions = get_number_regions(ifp);
-    int numMonsters = get_number_of_monsters(ifp);
+    int numMonster;
     region *regions = calloc(numRegions, sizeof(region));
     //three nested loops
         //grab each regions
             //declare double pointer
             malloc(sizeof(region));
-            (regions + 1)->monsters = malloc(sizeof(monster*) * numMonsters);
+            
         //loops through each region to grab monster
 
         //find corressponding monster struct
+
+    for(i = 0; i < numRegions; i++)
+    {
+        read_region(ifp, regions + i);
+        int numMonstersRegion = get_number_of_monsters(ifp);
+        (regions + 1)->monsters = malloc(sizeof(monster*) * numMonstersRegion);
+
+        for(j = 0; j < numMonstersRegion; j++)
+        {
+            
+            for(k = 0; k < temp; k++)
+            {
+                strcmp((monsters->name) + k, temp);
+            }
+        }
+    }
 
     return regions;
 }
