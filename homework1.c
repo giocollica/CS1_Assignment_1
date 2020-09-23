@@ -98,6 +98,8 @@ int get_number_of_monsters(FILE *ifp)
     return num;
 }
 
+
+//rename to read and fill monster
 void read_monster(FILE *ifp, monster *m)
 {
     char name[128];
@@ -126,29 +128,22 @@ void print_monster(FILE *ofp, monster *m)
 monster *monster_array_constructor(FILE *ifp, FILE *ofp)
 {
     int i = 0;
-    monster *monsters;
     //call number of monsters
     int numMonsters = get_number_of_monsters(ifp);
     //malloc memory to pointer handed for nmonsters
-    monster *m = calloc(numMonsters, sizeof(monster));
+    monster *monsters = calloc(numMonsters, sizeof(monster));
     //loop through calling fill monster
     for (i = 0; i < numMonsters; i++)
     {
         read_monster(ifp, monsters + i);
     }
+
     for (i = 0; i < numMonsters; i++)
     {
         print_monster(ofp, monsters + i);
     }
 
     return monsters;
-}
-
-region *new_region_array(int numRegions)
-{
-    region *r = calloc(numRegions, sizeof(region));
-
-    return r;
 }
 
 
@@ -202,12 +197,35 @@ void read_region(FILE *ifp, region *r)
 }
 
 
+
+region *region_array_constructor(FILE *ifp, monster *monsters)
+{
+    int i, j, k;
+    int numRegions = get_number_regions(ifp);
+    int numMonsters = get_number_of_monsters(ifp);
+    region *regions = calloc(numRegions, sizeof(region));
+    //three nested loops
+        //grab each regions
+            //declare double pointer
+            malloc(sizeof(region));
+            (regions + 1)->monsters = malloc(sizeof(monster*) * numMonsters);
+        //loops through each region to grab monster
+
+        //find corressponding monster struct
+
+    return regions;
+}
+
+
+
+
+/*
 void print_region(FILE *ofp, region *r)
 {
     fprintf(ofp, "Region: %s   Number of Monsters: %s\n",
             r->name, r->nmonsters);
 }
-
+*/
 
 
 
@@ -280,37 +298,19 @@ int main()
     FILE *ifp;
     FILE *ofp;
 
-    int numMonsters, numRegions, numTrainers;
+    int numRegions, numTrainers;
     int i;
-  //  monster *monsters;
+    monster *monsters;
     region *regions;
     trainer *trainers;
 
     ifp = fopen("input.txt", "r");
     ofp = fopen("output.txt", "w");
 
-    monster_array_constructor(ifp, ofp);
+    monsters = monster_array_constructor(ifp, ofp);
+    regions = region_array_constructor(ifp, monsters);
 
 /*
-    numMonsters = get_number_of_monsters(ifp);
-
-    fprintf(ofp, "Hello, world!  I should have %d monsters.\n", numMonsters);
-
-    monsters = monster_array(numMonsters);
-*/
-
-/*
-    for (i = 0; i < numMonsters; i++)
-    {
-        read_monster(ifp, monsters + i);
-    }
-*/
-/*
-    for (i = 0; i < numMonsters; i++)
-    {
-        print_monster(ofp, monsters + i);
-    }
-*/
     numRegions = get_number_regions(ifp);
 
     fprintf(ofp, "Hello, world!  I should have %d regions.\n", numRegions);
@@ -321,6 +321,7 @@ int main()
     {
         read_region(ifp, regions + i); 
     }
+*/
 /*
     for (i = 0; i < numRegions; i++)
     {
