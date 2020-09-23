@@ -83,14 +83,6 @@ void get_next_nonblank_line(FILE *ifp, char *s, int max_length)
 }
 
 
-monster *monster_array(int numMonsters)
-{
-    monster *m = calloc(numMonsters, sizeof(monster));
-
-    return m;
-}
-
-
 /* Function must be changed */
 int get_number_of_monsters(FILE *ifp)
 {
@@ -128,6 +120,28 @@ void print_monster(FILE *ofp, monster *m)
 {
     fprintf(ofp, "Monster: %s   Element: %s   Population: %d\n",
             m->name, m->element, m->population);
+}
+
+
+monster *monster_array_constructor(FILE *ifp, FILE *ofp)
+{
+    int i = 0;
+    monster *monsters;
+    //call number of monsters
+    int numMonsters = get_number_of_monsters(ifp);
+    //malloc memory to pointer handed for nmonsters
+    monster *m = calloc(numMonsters, sizeof(monster));
+    //loop through calling fill monster
+    for (i = 0; i < numMonsters; i++)
+    {
+        read_monster(ifp, monsters + i);
+    }
+    for (i = 0; i < numMonsters; i++)
+    {
+        print_monster(ofp, monsters + i);
+    }
+
+    return monsters;
 }
 
 region *new_region_array(int numRegions)
@@ -176,7 +190,8 @@ void read_region(FILE *ifp, region *r)
     get_next_nonblank_line(ifp, numMonsters_string, 127);
     numMonsters = atoi(numMonsters_string);
  
-    for(int i = 0; i < numMonsters; i++){
+    for(int i = 0; i < numMonsters; i++)
+    {
         get_next_nonblank_line(ifp, random, 127);
     }
  
@@ -267,31 +282,35 @@ int main()
 
     int numMonsters, numRegions, numTrainers;
     int i;
-    monster *monsters;
+  //  monster *monsters;
     region *regions;
     trainer *trainers;
 
     ifp = fopen("input.txt", "r");
     ofp = fopen("output.txt", "w");
 
+    monster_array_constructor(ifp, ofp);
 
+/*
     numMonsters = get_number_of_monsters(ifp);
 
     fprintf(ofp, "Hello, world!  I should have %d monsters.\n", numMonsters);
 
     monsters = monster_array(numMonsters);
+*/
 
-
+/*
     for (i = 0; i < numMonsters; i++)
     {
         read_monster(ifp, monsters + i);
     }
-
+*/
+/*
     for (i = 0; i < numMonsters; i++)
     {
         print_monster(ofp, monsters + i);
     }
-
+*/
     numRegions = get_number_regions(ifp);
 
     fprintf(ofp, "Hello, world!  I should have %d regions.\n", numRegions);
