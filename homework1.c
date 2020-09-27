@@ -261,14 +261,14 @@ static int get_number_captures(FILE *ifp){
 
 
 
-void fill_trainer(trainer *t, char *name)
+static void fill_trainer(trainer *t, char *name)
 {
     t->name = strdup(name);   
 }
 
 
 
-void read_trainer(FILE *ifp, trainer *t)
+static void read_trainer(FILE *ifp, trainer *t)
 {
     char name[128];
 
@@ -277,15 +277,36 @@ void read_trainer(FILE *ifp, trainer *t)
     fill_trainer(t, name);
 }
 
+static void fill_itinerary(itinerary *itin, int numCap, int numRegion)
+{
+    itin->captures = numCap;
+    itin->nregions = numRegion;
+}
+
 
 
 static itinerary *itinerary_array_constructor(FILE *ifp, region *r, int numTrainers)
 {
-    int i, j, k;
+    int i, j;
     int numCaptures = get_number_captures(ifp);
+    int numRegions = get_number_regions(ifp);
     itinerary *trainerItinerary = calloc(numTrainers, sizeof(itinerary));
-
-
+    fill_itinerary(trainerItinerary, numCaptures, numRegions);
+    for(i = 0; i < numRegions; i++)
+    {
+        (trainerItinerary)->regions[i] = malloc(sizeof(region*) * numRegions);
+        char buf[128];
+        get_next_nonblank_line(ifp, buf, 127);
+        for(j = 0; /*go until break*/; j++)
+        {
+            int tmp = 0;
+            tmp = strcmp( ((r + j)->name), buf );
+            if(tmp == 0){
+                (trainerItinerary)->regions[i] = (r + j);
+                break;
+            }
+        }
+    }
 }
 
 
@@ -295,8 +316,13 @@ static trainer *trainer_array_constructor(FILE *ifp, itinerary *itin)
     int i, j, k;
     int numTrainers = get_number_trainers(ifp);
     trainer *trainers = calloc(numTrainers, sizeof(trainer));
+    itinerary *trainerItinerary = calloc(numTrainers, sizeof(itinerary));
+    for(i = 0; i < numTrainers; i++)
+    {
+        read_trainer(ifp, trainers);
+    }
 
-    
+
 }
 
 
