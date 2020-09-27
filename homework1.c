@@ -34,7 +34,7 @@ typedef struct trainer
 
 
 
-void fill_monster(monster *m, char *name, char *element, int population)
+static void fill_monster(monster *m, char *name, char *element, int population)
 {
     /* strdup allocates and strcpy's our strings all at once. */
 
@@ -45,7 +45,7 @@ void fill_monster(monster *m, char *name, char *element, int population)
 
 
 
-void remove_crlf(char *s)
+static void remove_crlf(char *s)
 {
     char *t = s + strlen(s);
 
@@ -67,11 +67,9 @@ void remove_crlf(char *s)
 }
 
 /* Get the next line from an input file that isn't blank, and leave it in s.  Will clobber
-   s no matter what happens.  Will crash if there isn't a next blank line. 
+   s no matter what happens.  Will crash if there isn't a next blank line. */
 
-   YOU ARE ALLOWED TO COPY THIS FUNCTION. */
-
-void get_next_nonblank_line(FILE *ifp, char *s, int max_length)
+static void get_next_nonblank_line(FILE *ifp, char *s, int max_length)
 {
     s[0] = '\0';
 
@@ -84,7 +82,7 @@ void get_next_nonblank_line(FILE *ifp, char *s, int max_length)
 
 
 /* Function must be changed */
-int get_number_of_monsters(FILE *ifp)
+static int get_number_of_monsters(FILE *ifp)
 {
     char s[128];
     int num;
@@ -100,7 +98,7 @@ int get_number_of_monsters(FILE *ifp)
 
 
 //rename to read and fill monster
-void read_monster(FILE *ifp, monster *m)
+static void read_monster(FILE *ifp, monster *m)
 {
     char name[128];
     char element[128];
@@ -109,23 +107,23 @@ void read_monster(FILE *ifp, monster *m)
 
     /* Each monster has a name, a type, a region and a commonality. */
     
-    fscanf(ifp, "%s", &name);
-    fscanf(ifp, "%s", &element);
-    fscanf(ifp, "%s", &population_string);
+    fscanf(ifp, "%s", name);
+    fscanf(ifp, "%s", element);
+    fscanf(ifp, "%s", population_string);
     population = atoi(population_string);
     fill_monster(m, name, element, population);
 }
 
 
 
-void print_monster(FILE *ofp, monster *m)
+static void print_monster(FILE *ofp, monster *m)
 {
     fprintf(ofp, "Monster: %s   Element: %s   Population: %d\n",
             m->name, m->element, m->population);
 }
 
 
-monster *monster_array_constructor(FILE *ifp, FILE *ofp)
+static monster *monster_array_constructor(FILE *ifp, FILE *ofp)
 {
     int i = 0;
     //call number of monsters
@@ -147,7 +145,7 @@ monster *monster_array_constructor(FILE *ifp, FILE *ofp)
 }
 
 
-int get_number_regions(FILE *ifp)
+static int get_number_regions(FILE *ifp)
 {
     char s[128];
     int num; 
@@ -159,7 +157,7 @@ int get_number_regions(FILE *ifp)
 }
 
 
-void fill_region(region *r, char *name, int numMonsters)
+static void fill_region(region *r, char *name, int numMonsters)
 {
     r->name = strdup(name);
     r->nmonsters = numMonsters;
@@ -171,12 +169,12 @@ void fill_region(region *r, char *name, int numMonsters)
 
 
 
-void read_region(FILE *ifp, region *r)
+static void read_region(FILE *ifp, region *r)
 {
     char name[128];
     char numMonsters_string[128];
     int numMonsters;
-    char random[128];
+    //char random[128];
     
 
     /* Each monster has a name, a type, a region and a commonality. */
@@ -193,16 +191,18 @@ void read_region(FILE *ifp, region *r)
 
 
 
-region *region_array_constructor(FILE *ifp, monster *monsters)
+static region *region_array_constructor(FILE *ifp, monster *m)
 {
     int i, j, k;
     int numRegions = get_number_regions(ifp);
-    int numMonster;
+    //int numMonster;
     region *regions = calloc(numRegions, sizeof(region));
+    
+    
     //three nested loops
         //grab each regions
             //declare double pointer
-            malloc(sizeof(region));
+                            // malloc(sizeof(region));
             
         //loops through each region to grab monster
 
@@ -211,17 +211,24 @@ region *region_array_constructor(FILE *ifp, monster *monsters)
     for(i = 0; i < numRegions; i++)
     {
         read_region(ifp, regions + i);
-        int numMonstersRegion = get_number_of_monsters(ifp);
-        (regions + 1)->monsters = malloc(sizeof(monster*) * numMonstersRegion);
-
-        for(j = 0; j < numMonstersRegion; j++)
+        //int numMonstersRegion = get_number_of_monsters(ifp);
+        (regions + i)->monsters = malloc(sizeof(monster*) * (regions + i)->nmonsters);
+        
+        for(j = 0; j < (regions + i)->nmonsters; j++)
         {
-            
-            for(k = 0; k < temp; k++)
+            char buf[128];
+            get_next_nonblank_line(ifp, buf, 127);     
+            for(k = 0; /*go untill break*/; k++)
             {
-                strcmp((monsters->name) + k, temp);
+                int tmp = 0;
+                tmp = strcmp( ((m + k)->name), buf );
+                if(tmp == 0){
+                    (regions + i)->monsters[j] = (m + k);
+                    break;
+                }
             }
         }
+        
     }
 
     return regions;
@@ -229,26 +236,7 @@ region *region_array_constructor(FILE *ifp, monster *monsters)
 
 
 
-
-/*
-void print_region(FILE *ofp, region *r)
-{
-    fprintf(ofp, "Region: %s   Number of Monsters: %s\n",
-            r->name, r->nmonsters);
-}
-*/
-
-
-
-trainer *new_trainer_array(int numTrainers)
-{
-    trainer *t = calloc(numTrainers, sizeof(trainer));
-
-    return t;
-}
-
-
-int get_number_trainers(FILE *ifp)
+static int get_number_trainers(FILE *ifp)
 {
     char s[128];
     int num; 
@@ -261,37 +249,59 @@ int get_number_trainers(FILE *ifp)
 
 
 
+static int get_number_captures(FILE *ifp){
+    char s[128];
+    int num; 
 
-/*
+    get_next_nonblank_line(ifp, s, 127);
+    sscanf(s, "%d", &num);
 
-
-void fill_trainer(region *r, char *name, int numMonsters, monster *monsters)
-{
-    r->name = strdup(name);
-    r->nmonsters = numMonsters;
-    r->monsters = strdup(monsters->name);
+    return num;
 }
 
 
-void read_trainer(FILE *ifp, region *r)
+
+void fill_trainer(trainer *t, char *name)
+{
+    t->name = strdup(name);   
+}
+
+
+
+void read_trainer(FILE *ifp, trainer *t)
 {
     char name[128];
-    char numMonsters_string[128];
-    int numMonsters;
-    monster *monsters;
 
-    // Each monster has a name, a type, a region and a commonality.
-    
-    get_next_nonblank_line(ifp, name, 127);
-    get_next_nonblank_line(ifp, numMonsters_string, 127);
-    get_next_nonblank_line(ifp, monsters->name, 127);
-    numMonsters = atoi(numMonsters_string);
-    // idea for tomorrow
-    // have to iterate for each monster based on num monsters
-    
-    fill_region(r, name, numMonsters, monsters->name);
+    get_next_nonblank_line(ifp, name, 127);  
+
+    fill_trainer(t, name);
 }
-*/
+
+
+
+static itinerary *itinerary_array_constructor(FILE *ifp, region *r, int numTrainers)
+{
+    int i, j, k;
+    int numCaptures = get_number_captures(ifp);
+    itinerary *trainerItinerary = calloc(numTrainers, sizeof(itinerary));
+
+
+}
+
+
+
+static trainer *trainer_array_constructor(FILE *ifp, itinerary *itin)
+{
+    int i, j, k;
+    int numTrainers = get_number_trainers(ifp);
+    trainer *trainers = calloc(numTrainers, sizeof(trainer));
+
+    
+}
+
+
+
+
 
 
 /*
@@ -303,7 +313,7 @@ void read_trainer(FILE *ifp, region *r)
 
 
 
-int main()
+int main(void)
 {
     atexit(report_mem_leak);
     FILE *ifp;
@@ -340,11 +350,11 @@ int main()
     }
 */
 
-    numTrainers = get_number_trainers(ifp);
+   // numTrainers = get_number_trainers(ifp);
 
-    fprintf(ofp, "Hello, world!  I should have %d regions.\n", numTrainers);
+   // fprintf(ofp, "Hello, world!  I should have %d regions.\n", numTrainers);
 
-    trainers = new_trainer_array(numTrainers);
+    //trainers = new_trainer_array(numTrainers);
 
     
     return 0;
