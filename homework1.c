@@ -184,7 +184,17 @@ static void read_region(FILE *ifp, region *r)
     fill_region(r, name, numMonsters);
 }
 
+static int get_total_population(region *r)
+{
+    int totalPopulation = 0;
+    int i;
+    for(i = 0; i < r->nmonsters; i++)
+    {
+        totalPopulation = r->monsters[i]->population;
+    }
 
+    return totalPopulation;
+}
 
 static region *region_array_constructor(FILE *ifp, monster *m)
 {
@@ -196,6 +206,7 @@ static region *region_array_constructor(FILE *ifp, monster *m)
     for(i = 0; i < numRegions; i++)
     {
         read_region(ifp, regions + i);
+        (regions + i)->total_population = get_total_population(regions);
         //int numMonstersRegion = get_number_of_monsters(ifp);
         (regions + i)->monsters = malloc(sizeof(monster*) * (regions + i)->nmonsters);
         
