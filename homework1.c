@@ -115,14 +115,6 @@ static void read_monster(FILE *ifp, monster *m)
 }
 
 
-
-static void print_monster(FILE *ofp, monster *m)
-{
-    fprintf(ofp, "Monster: %s   Element: %s   Population: %d\n",
-            m->name, m->element, m->population);
-}
-
-
 static monster *monster_array_constructor(FILE *ifp)
 {
     int i = 0;
@@ -190,7 +182,7 @@ static int get_total_population(region *r)
     int i;
     for(i = 0; i < r->nmonsters; i++)
     {
-        totalPopulation = r->monsters[i]->population;
+        r->total_population += (r->monsters[i]->population);
     }
 
     return totalPopulation;
@@ -206,7 +198,7 @@ static region *region_array_constructor(FILE *ifp, monster *m)
     for(i = 0; i < numRegions; i++)
     {
         read_region(ifp, regions + i);
-        (regions + i)->total_population = get_total_population(regions + i);
+        get_total_population(regions + i);
         //int numMonstersRegion = get_number_of_monsters(ifp);
         (regions + i)->monsters = malloc(sizeof(monster*) * (regions + i)->nmonsters);
         
