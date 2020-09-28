@@ -136,11 +136,6 @@ static monster *monster_array_constructor(FILE *ifp, FILE *ofp)
         read_monster(ifp, monsters + i);
     }
 
-    for (i = 0; i < numMonsters; i++)
-    {
-        print_monster(ofp, monsters + i);
-    }
-
     return monsters;
 }
 
@@ -225,7 +220,6 @@ static region *region_array_constructor(FILE *ifp, monster *m)
 }
 
 
-
 static int get_number_trainers(FILE *ifp)
 {
     char s[128];
@@ -236,7 +230,6 @@ static int get_number_trainers(FILE *ifp)
 
     return num;
 }
-
 
 
 static int get_number_captures(FILE *ifp){
@@ -303,16 +296,17 @@ static itinerary *itinerary_array_constructor(FILE *ifp, region *r, int numTrain
 
 
 
-static trainer *trainer_array_constructor(FILE *ifp, region *r)
+static trainer *trainer_array_constructor(FILE *ifp, region *r, int *numTrain)
 {
     int i = 0;
     int numTrainers = 0;
     numTrainers = get_number_trainers(ifp);
+    *numTrain = numTrainers;
     trainer *trainers = calloc(numTrainers, sizeof(trainer));
     
     for(i = 0; i < numTrainers; i++)
     {
-        read_trainer(ifp, trainers);
+        read_trainer(ifp, (trainers + i));
         (trainers + i)->visits = malloc(sizeof(itinerary*) * numTrainers);
         (trainers + i)->visits = itinerary_array_constructor(ifp, r, numTrainers);
     }
@@ -321,7 +315,22 @@ static trainer *trainer_array_constructor(FILE *ifp, region *r)
 }
 
 
-
+static void print_output(FILE *ofp, trainer *trainers, int numTrainers)
+{
+    int i, j, k;
+    for(i = 0; i < numTrainers; i++)
+    {
+        fprintf(ofp, "\n%s\n", (trainers + i)->name);
+        for(j = 0; j < (trainers + i)->visits->nregions; j++)
+        {
+            fprintf(ofp, "%s\n", (trainers + i)->visits->regions[j]->name);
+            for(k = 0; k < (trainers + i)->visits->regions[j]->nmonsters; k++)
+            {
+                fprintf(ofp, "# %s\n", (trainers + i)->visits->regions[j]->monsters[k]->name);
+            }
+        }
+    }
+}
 
 
 
@@ -337,12 +346,18 @@ int main(void)
     region *regions;
     trainer *trainers;
 
+    int numTrainers;
+
     ifp = fopen("input.txt", "r");
     ofp = fopen("output.txt", "w");
 
     monsters = monster_array_constructor(ifp, ofp);
     regions = region_array_constructor(ifp, monsters);
-    trainers = trainer_array_constructor(ifp, regions);
+    trainers = trainer_array_constructor(ifp, regions, &numTrainers);
+
+    //function to calculate captures
+    
+    print_output(ofp, trainers, numTrainers);
 
     return 0;
 
