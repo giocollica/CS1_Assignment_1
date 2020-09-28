@@ -197,16 +197,6 @@ static region *region_array_constructor(FILE *ifp, monster *m)
     int numRegions = get_number_regions(ifp);
     //int numMonster;
     region *regions = calloc(numRegions, sizeof(region));
-    
-    
-    //three nested loops
-        //grab each regions
-            //declare double pointer
-                            // malloc(sizeof(region));
-            
-        //loops through each region to grab monster
-
-        //find corressponding monster struct
 
     for(i = 0; i < numRegions; i++)
     {
@@ -294,7 +284,7 @@ static itinerary *itinerary_array_constructor(FILE *ifp, region *r, int numTrain
     fill_itinerary(trainerItinerary, numCaptures, numRegions);
     for(i = 0; i < numRegions; i++)
     {
-        (trainerItinerary)->regions[i] = malloc(sizeof(region*) * numRegions);
+        (trainerItinerary + i)->regions = malloc(sizeof(region*) * numRegions);
         char buf[128];
         get_next_nonblank_line(ifp, buf, 127);
         for(j = 0; /*go until break*/; j++)
@@ -306,34 +296,31 @@ static itinerary *itinerary_array_constructor(FILE *ifp, region *r, int numTrain
                 break;
             }
         }
+        
     }
+    return trainerItinerary;
 }
 
 
 
-static trainer *trainer_array_constructor(FILE *ifp, itinerary *itin)
+static trainer *trainer_array_constructor(FILE *ifp, region *r)
 {
-    int i, j, k;
-    int numTrainers = get_number_trainers(ifp);
+    int i = 0;
+    int numTrainers = 0;
+    numTrainers = get_number_trainers(ifp);
     trainer *trainers = calloc(numTrainers, sizeof(trainer));
-    itinerary *trainerItinerary = calloc(numTrainers, sizeof(itinerary));
+    
     for(i = 0; i < numTrainers; i++)
     {
         read_trainer(ifp, trainers);
+        (trainers + i)->visits = malloc(sizeof(itinerary*) * numTrainers);
+        (trainers + i)->visits = itinerary_array_constructor(ifp, r, numTrainers);
     }
 
-
+    return trainers;
 }
 
 
-
-
-
-
-/*
-    Read in name of trainers
-        read in itinerary function
-*/
 
 
 
@@ -345,8 +332,7 @@ int main(void)
     FILE *ifp;
     FILE *ofp;
 
-    int numRegions, numTrainers;
-    int i;
+
     monster *monsters;
     region *regions;
     trainer *trainers;
@@ -356,33 +342,8 @@ int main(void)
 
     monsters = monster_array_constructor(ifp, ofp);
     regions = region_array_constructor(ifp, monsters);
+    trainers = trainer_array_constructor(ifp, regions);
 
-/*
-    numRegions = get_number_regions(ifp);
-
-    fprintf(ofp, "Hello, world!  I should have %d regions.\n", numRegions);
-
-    regions = new_region_array(numRegions);
-
-    for (i = 0; i < numRegions; i++)
-    {
-        read_region(ifp, regions + i); 
-    }
-*/
-/*
-    for (i = 0; i < numRegions; i++)
-    {
-        print_region(ofp, regions + i); 
-    }
-*/
-
-   // numTrainers = get_number_trainers(ifp);
-
-   // fprintf(ofp, "Hello, world!  I should have %d regions.\n", numTrainers);
-
-    //trainers = new_trainer_array(numTrainers);
-
-    
     return 0;
 
 }
