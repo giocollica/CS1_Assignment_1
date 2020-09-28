@@ -36,8 +36,6 @@ typedef struct trainer
 
 static void fill_monster(monster *m, char *name, char *element, int population)
 {
-    /* strdup allocates and strcpy's our strings all at once. */
-
     m->name = strdup(name);
     m->element = strdup(element);
     m->population = population;
@@ -81,7 +79,6 @@ static void get_next_nonblank_line(FILE *ifp, char *s, int max_length)
 }
 
 
-/* Function must be changed */
 static int get_number_of_monsters(FILE *ifp)
 {
     char s[128];
@@ -90,7 +87,7 @@ static int get_number_of_monsters(FILE *ifp)
     // Get the first line of the file.
     fgets(s, 127, ifp);
 
-    // The line should be formatted as "<number> monsters".  Pull off the number.
+    //pull out number from the file
     sscanf(s, "%d", &num);
 
     return num;
@@ -104,8 +101,6 @@ static void read_monster(FILE *ifp, monster *m)
     char element[128];
     char population_string[128];
     int population;
-
-    /* Each monster has a name, a type, a region and a commonality. */
     
     fscanf(ifp, "%s", name);
     fscanf(ifp, "%s", element);
@@ -152,26 +147,15 @@ static void fill_region(region *r, char *name, int numMonsters)
 
 
 
-// **monsters in region is a pointer to the monster array
-
-
-
 static void read_region(FILE *ifp, region *r)
 {
     char name[128];
     char numMonsters_string[128];
     int numMonsters;
-    //char random[128];
-    
-
-    /* Each monster has a name, a type, a region and a commonality. */
     
     get_next_nonblank_line(ifp, name, 127);
     get_next_nonblank_line(ifp, numMonsters_string, 127);
     numMonsters = atoi(numMonsters_string);
- 
-    // idea for tomorrow
-    // have to iterate for each monster based on num monsters
     
     fill_region(r, name, numMonsters);
 }
