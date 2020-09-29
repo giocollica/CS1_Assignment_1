@@ -138,14 +138,15 @@ static int get_number_regions(FILE *ifp)
     return num;
 }
 
-
+//function to fill in elements of region array
 static void fill_region(region *r, char *name, int numMonsters)
 {
     r->name = strdup(name);
     r->nmonsters = numMonsters;
 }
 
-
+//function to read in elements of regions from the file
+//calls the fill_region function
 static void read_region(FILE *ifp, region *r)
 {
     char name[128];
@@ -159,7 +160,7 @@ static void read_region(FILE *ifp, region *r)
     fill_region(r, name, numMonsters);
 }
 
-
+//function to get the total population for the region
 static region *get_total_population(region *regions, int numRegions)
 {
     int i, j;
@@ -173,14 +174,18 @@ static region *get_total_population(region *regions, int numRegions)
     return regions;
 }
 
-
+//region array constructor to fill in elements of regions array
 static region *region_array_constructor(FILE *ifp, monster *m)
 {
     int i, j, k;
     int numRegions = get_number_regions(ifp);
-    //int numMonster;
     region *regions = calloc(numRegions, sizeof(region));
 
+    /*
+        goes through the number of regions, the number of monsters
+        in each region to assign the monster double pointer in the
+        regions struct to adress of the corresponding monster.
+    */
     for(i = 0; i < numRegions; i++)
     {
         read_region(ifp, regions + i);
@@ -207,7 +212,7 @@ static region *region_array_constructor(FILE *ifp, monster *m)
     return regions;
 }
 
-
+//function to read number of trainers from the file
 static int get_number_trainers(FILE *ifp)
 {
     char s[128];
@@ -219,7 +224,7 @@ static int get_number_trainers(FILE *ifp)
     return num;
 }
 
-
+//function to read number of captures from the file
 static int get_number_captures(FILE *ifp){
     char s[128];
     int num; 
@@ -230,13 +235,14 @@ static int get_number_captures(FILE *ifp){
     return num;
 }
 
-
+//function to fill in elements of trainer array
 static void fill_trainer(trainer *t, char *name)
 {
     t->name = strdup(name);   
 }
 
-
+//function to read in the name of the trainer
+//calls fill_trainer function
 static void read_trainer(FILE *ifp, trainer *t)
 {
     char name[128];
@@ -246,14 +252,14 @@ static void read_trainer(FILE *ifp, trainer *t)
     fill_trainer(t, name);
 }
 
-
+//function to fill in elements of itinerary array
 static void fill_itinerary(itinerary *itin, int numCap, int numRegion)
 {
     itin->captures = numCap;
     itin->nregions = numRegion;
 }
 
-
+//itinerary array constructor to fill in elements of the itinerary array
 static itinerary *itinerary_array_constructor(FILE *ifp, region *r, int numTrainers)
 {
     int i, j;
@@ -261,6 +267,12 @@ static itinerary *itinerary_array_constructor(FILE *ifp, region *r, int numTrain
     int numRegions = get_number_regions(ifp);
     itinerary *trainerItinerary = calloc(numTrainers, sizeof(itinerary));
     fill_itinerary(trainerItinerary, numCaptures, numRegions);
+    
+    /*
+        goes through the number of regions to assign the regions
+        double pointer in the itinerary struct to the corresponding
+        region
+    */
     for(i = 0; i < numRegions; i++)
     {
         (trainerItinerary + i)->regions = malloc(sizeof(region*) * numRegions);
@@ -280,7 +292,7 @@ static itinerary *itinerary_array_constructor(FILE *ifp, region *r, int numTrain
     return trainerItinerary;
 }
 
-
+//trainer array constructor to fill in elements of trainer array
 static trainer *trainer_array_constructor(FILE *ifp, region *r, int *numTrain)
 {
     int i = 0;
@@ -289,6 +301,8 @@ static trainer *trainer_array_constructor(FILE *ifp, region *r, int *numTrain)
     *numTrain = numTrainers;
     trainer *trainers = calloc(numTrainers, sizeof(trainer));
     
+    //run through number of trainers to fill in elements
+    //for each element in the array
     for(i = 0; i < numTrainers; i++)
     {
         read_trainer(ifp, (trainers + i));
@@ -299,7 +313,7 @@ static trainer *trainer_array_constructor(FILE *ifp, region *r, int *numTrain)
     return trainers;
 }
 
-
+//function to print out the desired output set in the assignment
 static void print_output(FILE *ofp, trainer *trainers, int numTrainers)
 {
     int i, j, k;
@@ -329,9 +343,9 @@ static void print_output(FILE *ofp, trainer *trainers, int numTrainers)
 int main(void)
 {
     atexit(report_mem_leak);
+    
     FILE *ifp;
     FILE *ofp;
-
 
     monster *monsters;
     region *regions;
@@ -345,8 +359,6 @@ int main(void)
     monsters = monster_array_constructor(ifp);
     regions = region_array_constructor(ifp, monsters);
     trainers = trainer_array_constructor(ifp, regions, &numTrainers);
-
-    //function to calculate captures
     
     print_output(ofp, trainers, numTrainers);
 
