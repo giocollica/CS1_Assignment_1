@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 #include "leak_detector_c.h"
 
 typedef struct monster 
@@ -33,14 +34,13 @@ typedef struct trainer
 } trainer;
 
 
-
+//function to fill in elements of monster array
 static void fill_monster(monster *m, char *name, char *element, int population)
 {
     m->name = strdup(name);
     m->element = strdup(element);
     m->population = population;
 }
-
 
 
 static void remove_crlf(char *s)
@@ -78,7 +78,7 @@ static void get_next_nonblank_line(FILE *ifp, char *s, int max_length)
     }
 }
 
-
+//function to get the number of monsters
 static int get_number_of_monsters(FILE *ifp)
 {
     char s[128];
@@ -93,8 +93,8 @@ static int get_number_of_monsters(FILE *ifp)
     return num;
 }
 
-
-//rename to read and fill monster
+//function to read in monsters from the file
+//calls fill_monster function
 static void read_monster(FILE *ifp, monster *m)
 {
     char name[128];
@@ -109,7 +109,7 @@ static void read_monster(FILE *ifp, monster *m)
     fill_monster(m, name, element, population);
 }
 
-
+//monster array constructor to fill in all elements of the monster array
 static monster *monster_array_constructor(FILE *ifp)
 {
     int i = 0;
@@ -126,7 +126,7 @@ static monster *monster_array_constructor(FILE *ifp)
     return monsters;
 }
 
-
+//gets the number of regions from the file
 static int get_number_regions(FILE *ifp)
 {
     char s[128];
@@ -146,7 +146,6 @@ static void fill_region(region *r, char *name, int numMonsters)
 }
 
 
-
 static void read_region(FILE *ifp, region *r)
 {
     char name[128];
@@ -160,17 +159,20 @@ static void read_region(FILE *ifp, region *r)
     fill_region(r, name, numMonsters);
 }
 
-static int get_total_population(region *r)
-{
-    int totalPopulation = 0;
-    int i;
-    for(i = 0; i < r->nmonsters; i++)
-    {
-        r->total_population += (r->monsters[i]->population);
-    }
 
-    return totalPopulation;
+static region *get_total_population(region *regions, int numRegions)
+{
+    int i, j;
+    for(i = 0; i < numRegions; i++)
+    {
+        for(j = 0; j < (regions + i)->nmonsters; j++)
+        {
+            (regions + i)->total_population += (regions + i)->monsters[j]->population;
+        }
+    }
+    return regions;
 }
+
 
 static region *region_array_constructor(FILE *ifp, monster *m)
 {
@@ -182,10 +184,7 @@ static region *region_array_constructor(FILE *ifp, monster *m)
     for(i = 0; i < numRegions; i++)
     {
         read_region(ifp, regions + i);
-        get_total_population(regions + i);
-        //int numMonstersRegion = get_number_of_monsters(ifp);
         (regions + i)->monsters = malloc(sizeof(monster*) * (regions + i)->nmonsters);
-        
         for(j = 0; j < (regions + i)->nmonsters; j++)
         {
             char buf[128];
@@ -202,6 +201,8 @@ static region *region_array_constructor(FILE *ifp, monster *m)
         }
         
     }
+
+    get_total_population(regions, numRegions);
 
     return regions;
 }
@@ -230,12 +231,10 @@ static int get_number_captures(FILE *ifp){
 }
 
 
-
 static void fill_trainer(trainer *t, char *name)
 {
     t->name = strdup(name);   
 }
-
 
 
 static void read_trainer(FILE *ifp, trainer *t)
@@ -247,12 +246,12 @@ static void read_trainer(FILE *ifp, trainer *t)
     fill_trainer(t, name);
 }
 
+
 static void fill_itinerary(itinerary *itin, int numCap, int numRegion)
 {
     itin->captures = numCap;
     itin->nregions = numRegion;
 }
-
 
 
 static itinerary *itinerary_array_constructor(FILE *ifp, region *r, int numTrainers)
@@ -280,7 +279,6 @@ static itinerary *itinerary_array_constructor(FILE *ifp, region *r, int numTrain
     }
     return trainerItinerary;
 }
-
 
 
 static trainer *trainer_array_constructor(FILE *ifp, region *r, int *numTrain)
@@ -313,15 +311,21 @@ static void print_output(FILE *ofp, trainer *trainers, int numTrainers)
             fprintf(ofp, "%s\n", (trainers + i)->visits->regions[j]->name);
             for(k = 0; k < (trainers + i)->visits->regions[j]->nmonsters; k++)
             {
-                fprintf(ofp, "# %s\n", (trainers + i)->visits->regions[j]->monsters[k]->name);
+                double monsterPop = ((trainers + i)->visits->regions[j]->monsters[k]->population);
+                double regionPop = ((trainers + i)->visits->regions[j]->total_population);
+                double intendedCaptures = ((trainers + i)->visits->captures);
+                double temp = (monsterPop / regionPop) * intendedCaptures;
+                int numCaptured = round(temp);
+                if(numCaptured > 0)
+                {
+                    fprintf(ofp, "%d %s\n", numCaptured, (trainers + i)->visits->regions[j]->monsters[k]->name);
+                }
             }
         }
     }
 }
 
-
-
-
+//main function
 int main(void)
 {
     atexit(report_mem_leak);
