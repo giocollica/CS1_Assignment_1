@@ -110,11 +110,13 @@ static void read_monster(FILE *ifp, monster *m)
 }
 
 //monster array constructor to fill in all elements of the monster array
-static monster *monster_array_constructor(FILE *ifp)
+static monster *monster_array_constructor(FILE *ifp, int *numMon)
 {
     int i = 0;
     //call number of monsters
     int numMonsters = get_number_of_monsters(ifp);
+    //pointer of number of monsters
+    *numMon = numMonsters;
     //malloc memory to pointer handed for nmonsters
     monster *monsters = calloc(numMonsters, sizeof(monster));
     //loop through calling fill monster
@@ -175,10 +177,11 @@ static region *get_total_population(region *regions, int numRegions)
 }
 
 //region array constructor to fill in elements of regions array
-static region *region_array_constructor(FILE *ifp, monster *m)
+static region *region_array_constructor(FILE *ifp, monster *m, int *numReg)
 {
     int i, j, k;
     int numRegions = get_number_regions(ifp);
+    *numReg = numRegions;
     region *regions = calloc(numRegions, sizeof(region));
 
     /*
@@ -339,6 +342,68 @@ static void print_output(FILE *ofp, trainer *trainers, int numTrainers)
     }
 }
 
+//free memory for monster
+static void clear_monster(monster *m)
+{
+    
+    if(m->name != NULL)
+    {
+        free(m->name);
+        m->name = NULL;
+    }
+        
+    if(m->element != NULL)
+    {
+        free(m->element);
+        m->element = NULL;
+    }
+
+
+    m->population = 0;
+        
+}
+
+//free memory for monster array
+static void dispose_monster_array(monster *m, int numMonsters)
+{
+    for(int i = 0; i < numMonsters; i++)
+    {
+        clear_monster(m + i);
+    }
+
+    free(m);
+}
+
+//free memory for region
+static void clear_region(region *r)
+{
+    if(r->name != NULL)
+    {
+        free(r->name);
+        r->name = NULL;
+    }
+
+    if(r->monsters != NULL)
+    {
+        free(r->monsters);
+        r->monsters = NULL;
+    }
+
+    r->nmonsters = 0;
+    r->total_population = 0;
+}
+
+//free memory for region array
+static void dispose_region_array(region *r, int numRegions)
+{
+    for(int i = 0; i < numRegions; i++)
+    {
+        clear_region(r + i);
+    }
+
+    free(r);
+}
+
 //main function
 int main(void)
 {
@@ -351,16 +416,21 @@ int main(void)
     region *regions;
     trainer *trainers;
 
+    int numMonsters;
+    int numRegions;
     int numTrainers;
 
     ifp = fopen("input.txt", "r");
     ofp = fopen("output.txt", "w");
 
-    monsters = monster_array_constructor(ifp);
-    regions = region_array_constructor(ifp, monsters);
+    monsters = monster_array_constructor(ifp, &numMonsters);
+    regions = region_array_constructor(ifp, monsters, &numRegions);
     trainers = trainer_array_constructor(ifp, regions, &numTrainers);
     
     print_output(ofp, trainers, numTrainers);
+
+    dispose_monster_array(monsters, numMonsters);
+    dispose_region_array(regions, numRegions);
 
     return 0;
 
